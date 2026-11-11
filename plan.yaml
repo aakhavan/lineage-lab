@@ -1,0 +1,52 @@
+# lineage-lab batch 1 (L1-L5): OpenMetadata + OpenLineage on governor's dbt project. Spec: docs/spec.md. Locked with `factory lock`.
+project: lineage-lab
+notes: NOTES.md
+agents: AGENTS.md
+defaults:
+  max_fix_loops: 2
+  timeout_min: 90              # first start pulls several GB of images
+  run_budget_usd: 60
+  step_budget_usd: 20
+  review_budget_usd: {design: 2.0, mechanical: 0.75}
+# no `roles`: the design / mechanical lists come from %USERPROFILE%\.factory\agents.yaml
+steps:
+  - id: L1
+    title: The two stacks (OpenMetadata 2.0.5, Marquez) and the OpenMetadata client
+    tier: design
+    prompt: plan/prompts/L1.md
+    accept: plan/accept/accept_l1.py
+    allowed_paths: [stack/, src/lineagelab/, tests/, pyproject.toml, uv.lock, README.md, .gitignore]
+    human_gate: false
+    review_focus: "image tags and tool versions are pinned and recorded; the OpenMetadata compose file is the release file unchanged; no token or password beyond the documented local defaults is written anywhere; the governor test bed containers are never touched; om.table/om.upstream return what the API returned"
+  - id: L2
+    title: Work copy, dbt build with artifacts, and the database in OpenMetadata
+    tier: design
+    prompt: plan/prompts/L2.md
+    accept: plan/accept/accept_l2.py
+    allowed_paths: [src/lineagelab/, tests/, stack/versions.yaml, pyproject.toml, uv.lock, README.md]
+    human_gate: false
+    review_focus: "../olist-dbt and ../governor are only read; dbt runs on the work copy against target dev only; the workflow YAML with connection details is written under work/ and never committed; only schemas raw, dev_governor and analytics of database shop are ingested; no data values (sample data, profiler) are ingested or stored"
+  - id: L3
+    title: dbt artifacts in OpenMetadata (descriptions, tests, lineage)
+    tier: design
+    prompt: plan/prompts/L3.md
+    accept: plan/accept/accept_l3.py
+    allowed_paths: [src/lineagelab/, tests/, stack/versions.yaml, README.md]
+    human_gate: false
+    review_focus: "lineage, descriptions and tests in OpenMetadata come from the dbt workflow, not from extra API calls; the artifacts used are the ones built in L2; a re-run is idempotent"
+  - id: L4
+    title: OpenLineage events from dbt (Marquez, saved events, the forward experiment)
+    tier: design
+    prompt: plan/prompts/L4.md
+    accept: plan/accept/accept_l4.py
+    allowed_paths: [src/lineagelab/, tests/, stack/, docs/findings/, README.md]
+    human_gate: false
+    review_focus: "the saved events are what dbt-ol emitted, unedited; olevents functions are pure and tested on a small hand-made fixture; the forward experiment reports honestly what OpenMetadata accepted and resolved, and no lineage was added through another API to fake success; the findings file holds no data values or tokens"
+  - id: L5
+    title: Three views of lineage compared
+    tier: design
+    prompt: plan/prompts/L5.md
+    accept: plan/accept/accept_l5.py
+    allowed_paths: [src/lineagelab/, tests/, docs/lineage-compare.md, README.md]
+    human_gate: false
+    review_focus: "name normalisation is one tested function and cannot silently drop edges (unmatched names are counted and listed); precision and recall are computed against the manifest only; the report's numbers equal the command's JSON; the README says how to run the whole lab from nothing"
