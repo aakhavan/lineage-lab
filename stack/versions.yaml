@@ -39,3 +39,10 @@ stacks:
 tools:
   python: "3.12.14"        # project interpreter (uv-managed)
   docker_engine: null      # not recorded in L1 (`docker version` was not permitted in the factory session); see NOTES.md
+  # L2: dbt runs in an isolated uv tool env (uvx --from dbt-core==X --with dbt-postgres==Y), the versions governor locks
+  dbt_core: "1.12.6"
+  dbt_postgres: "1.11.0"
+  # L2: metadata ingestion runs in the OM ingestion container (image openmetadata/ingestion:2.0.5, its own
+  # `metadata` CLI); the pin below is only for the uvx fallback (pip specifier; not used on this machine)
+  openmetadata_ingestion: "~=2.0.5.0"
+  ingest_runner: docker_exec   # verified 2026-11-11: docker exec openmetadata_ingestion, test bed as host.docker.internal:55432

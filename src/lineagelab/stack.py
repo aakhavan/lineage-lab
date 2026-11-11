@@ -81,8 +81,39 @@ def _compose(cfg: dict, *args: str, timeout: float) -> int:
     return r.returncode
 
 
+def _download(url: str) -> str:
+    r = httpx.get(url, follow_redirects=True, timeout=120)
+    r.raise_for_status()
+    return r.text
+
+
+def source_line(url: str, day: str) -> str:
+    """The first comment line the downloaded release compose file carries (the rest is unchanged)."""
+    return f"# Source: {url} (downloaded {day}, unchanged below this line)"
+
+
+def ensure_compose_file(cfg: dict, root: Path = ROOT, download=_download, today: str | None = None) -> bool:
+    """Download a git-ignored release compose file from cfg['source'] when it is missing. True if downloaded.
+
+    Only for stacks whose `source` is one URL of a compose file (OpenMetadata; Marquez's source is a description
+    and its compose file is committed). The file is written unchanged below one comment line.
+    """
+    path = root / cfg["compose_file"]
+    url = str(cfg.get("source") or "").strip()
+    is_file_url = url.startswith(("http://", "https://")) and url.endswith((".yml", ".yaml")) and " " not in url
+    if path.is_file() or not is_file_url:
+        return False
+    body = download(url)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    day = today or time.strftime("%Y-%m-%d")
+    path.write_text(source_line(url, day) + "\n" + body, encoding="utf-8", newline="")
+    return True
+
+
 def up(versions: dict, which: list[str], wait_s: float = 1800) -> dict:
     s = versions["stacks"]
+    for k in which:
+        ensure_compose_file(s[k])
     rcs = {k: _compose(s[k], "up", "-d", timeout=wait_s) for k in which}
     deadline = time.monotonic() + wait_s
     pending = [k for k in which if rcs[k] == 0]
