@@ -157,6 +157,36 @@ def table(fqn: str) -> dict | None:
     return reshape_table(payload, tests)
 
 
+MAX_LINEAGE_DEPTH = 3  # OpenMetadata 2.0.5 rejects upstreamDepth > 3 with HTTP 400
+
+
+def _at_distance(root: str, edges: list[list[str]], d: int) -> set[str]:
+    """Upstream nodes exactly d hops from root (shortest path) in a [from, to] edge list."""
+    parents: dict[str, set[str]] = {}
+    for src, dst in edges:
+        parents.setdefault(dst, set()).add(src)
+    seen, level = {root}, {root}
+    for _ in range(d):
+        level = {p for n in level for p in parents.get(n, ()) if p not in seen}
+        seen |= level
+    return level
+
+
 def upstream(fqn: str, depth: int = 3) -> dict:
-    payload = get(f"/v1/lineage/table/name/{quote(fqn, safe='')}", upstreamDepth=depth, downstreamDepth=0)
-    return reshape_lineage(payload)
+    """Upstream lineage to `depth` hops; deeper than the server's limit is fetched in steps of at most 3."""
+    edges: list[list[str]] = []
+    column_edges: list[list[str]] = []
+    frontier, fetched, remaining = {fqn}, set(), depth
+    while remaining > 0 and frontier:
+        step = min(remaining, MAX_LINEAGE_DEPTH)
+        nxt: set[str] = set()
+        for node in sorted(frontier - fetched):
+            fetched.add(node)
+            part = reshape_lineage(get(f"/v1/lineage/table/name/{quote(node, safe='')}",
+                                       upstreamDepth=step, downstreamDepth=0))
+            edges += [e for e in part["edges"] if e not in edges]
+            column_edges += [e for e in part["column_edges"] if e not in column_edges]
+            nxt |= _at_distance(node, part["edges"], step)
+        frontier, remaining = nxt, remaining - step
+    nodes = sorted({x for e in edges for x in e} | {fqn})
+    return {"nodes": nodes, "edges": sorted(edges), "column_edges": sorted(column_edges)}

@@ -41,13 +41,14 @@ def live():
             f"s = om.table('{SERVICE}.dev_governor.stg_orders') or {{}}\n"
             f"u = om.upstream('{SERVICE}.dev_governor.kpi_gmv', 4)\n"
             "print(json.dumps({'kpi_desc': bool((k.get('description') or '').strip()),\n"
-            "                  'stg_col_desc': sum(1 for c in s.get('columns', []) if (c.get('description') or '').strip()),\n"
+            "                  'kpi_col_desc': sum(1 for c in k.get('columns', []) if (c.get('description') or '').strip()),\n"
             "                  'stg_tests': int(s.get('tests') or 0), 'nodes': u.get('nodes', []), 'edges': len(u.get('edges', []))}))")
     d, err = py_json(code, timeout=180)
     if not check("kpi_gmv and stg_orders can be read", d is not None, err):
         return
     check("kpi_gmv has its dbt description", d["kpi_desc"], "")
-    check("stg_orders has column descriptions", d["stg_col_desc"] >= 1, str(d["stg_col_desc"]))
+    # the silver models of olist-dbt carry no column descriptions (checked in its manifest, 11 Nov); the KPI value column does
+    check("kpi_gmv has its dbt column description", d["kpi_col_desc"] >= 1, str(d["kpi_col_desc"]))
     check("stg_orders has dbt tests", d["stg_tests"] >= 1, str(d["stg_tests"]))
     nodes = [str(n).lower() for n in d["nodes"]]
     check("kpi_gmv lineage reaches a silver model", any(".stg_" in n or ".int_" in n for n in nodes), ", ".join(nodes)[:200])

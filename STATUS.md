@@ -1,15 +1,15 @@
 # STATUS: lineage-lab
 
-Updated 11 Nov 2026 23:25. Run `20261111-230745`.
+Updated 12 Nov 2026 00:05. Run `20261111-235724`.
 
 | step | title | tier | gate | state | loops | reason | implementer | verdicts | updated |
 |---|---|---|---|---|---|---|---|---|---|
 | L1 | The two stacks (OpenMetadata 2.0.5, Marquez) and the OpenMetadata client | design | - | done | 0/2 |  | claude-tc-opus | cursor-grok: pass | 2026-11-11T23:12:47 |
-| L2 | Work copy, dbt build with artifacts, and the database in OpenMetadata | design | - | passed | 0/2 |  | claude-tc-opus | cursor-grok: pass | 2026-11-11T23:25:22 |
-| L3 | dbt artifacts in OpenMetadata (descriptions, tests, lineage) | design | - | pending | 0/2 |  | - | - | - |
+| L2 | Work copy, dbt build with artifacts, and the database in OpenMetadata | design | - | done | 0/2 |  | claude-tc-opus | cursor-grok: pass | 2026-11-11T23:25:23 |
+| L3 | dbt artifacts in OpenMetadata (descriptions, tests, lineage) | design | - | passed | 2/2 |  | claude-tc-opus | cursor-grok: pass | 2026-11-12T00:05:47 |
 | L4 | OpenLineage events from dbt (Marquez, saved events, the forward experiment) | design | - | pending | 0/2 |  | - | - | - |
 | L5 | Three views of lineage compared | design | - | pending | 0/2 |  | - | - | - |
 
-Cost so far (reported + notional): $3.08 of $60.00 run budget; 4 agent call(s).
+Cost so far (reported + notional): $5.05 of $60.00 run budget; 8 agent call(s).
 
-Next: L2 is passed: `factory resume`.
+Next: L3 is passed: `factory resume`.
