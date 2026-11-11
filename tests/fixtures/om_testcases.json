@@ -1,0 +1,26 @@
+{
+ "data": [
+  {
+   "id": "id-5",
+   "name": "stg_orders_order_id_not_null",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.stg_orders.order_id.stg_orders_order_id_not_null",
+   "entityLink": "<#E::table::lineagelab_fixture.shop.s.stg_orders::columns::order_id>",
+   "entityFQN": "lineagelab_fixture.shop.s.stg_orders.order_id",
+   "parameterValues": [],
+   "version": 0.1,
+   "createdBy": "<user>",
+   "updatedAt": 0,
+   "updatedBy": "<user>",
+   "deleted": false,
+   "computePassedFailedRowCount": false,
+   "autoCloseIncident": false,
+   "useDynamicAssertion": false,
+   "dimensionColumns": [],
+   "topDimensions": 5,
+   "entityStatus": "Unprocessed"
+  }
+ ],
+ "paging": {
+  "total": 2
+ }
+}

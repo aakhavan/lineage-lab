@@ -1,0 +1,41 @@
+# Every image tag, tool version, URL and port lineage-lab uses. Later steps add their tools here.
+# lineagelab.stack reads urls/ports/compose settings from this file.
+checked: 2026-11-11
+
+stacks:
+  om:
+    compose_project: lineagelab_om
+    compose_file: stack/openmetadata/docker-compose.yml
+    source: https://github.com/open-metadata/OpenMetadata/releases/download/2.0.5-release/docker-compose-postgres.yml
+    version: 2.0.5
+    images:
+      - docker.getcollate.io/openmetadata/postgresql:2.0.5
+      - docker.elastic.co/elasticsearch/elasticsearch:9.3.0
+      - docker.getcollate.io/openmetadata/server:2.0.5
+      - docker.getcollate.io/openmetadata/ingestion:2.0.5
+    urls:
+      ui: http://localhost:8585
+      api: http://localhost:8585/api
+      admin_healthcheck: http://localhost:8586/healthcheck
+      airflow: http://localhost:8080
+      search: http://localhost:9200
+    ports: {ui_api: 8585, admin: 8586, airflow: 8080, elasticsearch: 9200, elasticsearch_transport: 9300, postgres: 5432}
+    default_login: admin@open-metadata.org   # documented local default; password is the documented default "admin"
+  marquez:
+    compose_project: lineagelab_marquez
+    compose_file: stack/marquez/docker-compose.yml
+    source: https://github.com/MarquezProject/marquez (docker-compose.yml + docker-compose.web.yml, TAG 0.51.1 on main)
+    version: 0.51.1
+    images:
+      - postgres:14.24
+      - marquezproject/marquez:0.51.1
+      - marquezproject/marquez-web:0.51.1
+    urls:
+      api: http://localhost:5000
+      admin_healthcheck: http://localhost:5001/healthcheck
+      ui: http://localhost:3000
+    ports: {api: 5000, admin: 5001, web: 3000}   # Marquez DB is not published (would clash with OpenMetadata's 5432)
+
+tools:
+  python: "3.12.14"        # project interpreter (uv-managed)
+  docker_engine: null      # not recorded in L1 (`docker version` was not permitted in the factory session); see NOTES.md

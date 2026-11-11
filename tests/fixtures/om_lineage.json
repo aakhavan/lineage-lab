@@ -1,0 +1,103 @@
+{
+ "entity": {
+  "id": "id-6",
+  "type": "table",
+  "name": "orders_mart",
+  "fullyQualifiedName": "lineagelab_fixture.shop.s.orders_mart",
+  "displayName": "orders_mart",
+  "deleted": false
+ },
+ "nodes": [
+  {
+   "id": "id-1",
+   "type": "table",
+   "name": "stg_orders",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.stg_orders",
+   "description": "Staged orders",
+   "displayName": "stg_orders",
+   "deleted": false
+  },
+  {
+   "id": "id-7",
+   "type": "table",
+   "name": "raw_customers",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.raw_customers",
+   "displayName": "raw_customers",
+   "deleted": false
+  },
+  {
+   "id": "id-8",
+   "type": "table",
+   "name": "raw_orders",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.raw_orders",
+   "displayName": "raw_orders",
+   "deleted": false
+  }
+ ],
+ "upstreamEdges": [
+  {
+   "fromEntity": "id-1",
+   "toEntity": "id-6",
+   "lineageDetails": {
+    "columnsLineage": [
+     {
+      "fromColumns": [
+       "lineagelab_fixture.shop.s.stg_orders.order_id"
+      ],
+      "toColumn": "lineagelab_fixture.shop.s.orders_mart.order_id"
+     }
+    ],
+    "source": "Manual",
+    "createdAt": 0,
+    "createdBy": "<user>",
+    "updatedAt": 0,
+    "updatedBy": "<user>"
+   }
+  },
+  {
+   "fromEntity": "id-7",
+   "toEntity": "id-6",
+   "lineageDetails": {
+    "columnsLineage": [
+     {
+      "fromColumns": [
+       "lineagelab_fixture.shop.s.raw_customers.email"
+      ],
+      "toColumn": "lineagelab_fixture.shop.s.orders_mart.customer_email"
+     }
+    ],
+    "source": "Manual",
+    "createdAt": 0,
+    "createdBy": "<user>",
+    "updatedAt": 0,
+    "updatedBy": "<user>"
+   }
+  },
+  {
+   "fromEntity": "id-8",
+   "toEntity": "id-1",
+   "lineageDetails": {
+    "columnsLineage": [
+     {
+      "fromColumns": [
+       "lineagelab_fixture.shop.s.raw_orders.order_id"
+      ],
+      "toColumn": "lineagelab_fixture.shop.s.stg_orders.order_id"
+     },
+     {
+      "fromColumns": [
+       "lineagelab_fixture.shop.s.raw_orders.customer_id"
+      ],
+      "toColumn": "lineagelab_fixture.shop.s.stg_orders.customer_id"
+     }
+    ],
+    "source": "Manual",
+    "createdAt": 0,
+    "createdBy": "<user>",
+    "updatedAt": 0,
+    "updatedBy": "<user>"
+   }
+  }
+ ],
+ "downstreamEdges": []
+}

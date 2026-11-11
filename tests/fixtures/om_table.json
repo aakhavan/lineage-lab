@@ -1,0 +1,69 @@
+{
+ "id": "id-1",
+ "name": "stg_orders",
+ "fullyQualifiedName": "lineagelab_fixture.shop.s.stg_orders",
+ "description": "Staged orders",
+ "version": 0.1,
+ "updatedAt": 0,
+ "updatedBy": "<user>",
+ "columns": [
+  {
+   "name": "order_id",
+   "dataType": "VARCHAR",
+   "dataLength": 64,
+   "dataTypeDisplay": "varchar",
+   "description": "Order key",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.stg_orders.order_id",
+   "tags": [],
+   "children": []
+  },
+  {
+   "name": "customer_id",
+   "dataType": "VARCHAR",
+   "dataLength": 64,
+   "dataTypeDisplay": "varchar",
+   "fullyQualifiedName": "lineagelab_fixture.shop.s.stg_orders.customer_id",
+   "tags": [],
+   "children": []
+  }
+ ],
+ "databaseSchema": {
+  "id": "id-2",
+  "type": "databaseSchema",
+  "name": "s",
+  "fullyQualifiedName": "lineagelab_fixture.shop.s",
+  "displayName": "s",
+  "deleted": false
+ },
+ "database": {
+  "id": "id-3",
+  "type": "database",
+  "name": "shop",
+  "fullyQualifiedName": "lineagelab_fixture.shop",
+  "displayName": "shop",
+  "deleted": false
+ },
+ "service": {
+  "id": "id-4",
+  "type": "databaseService",
+  "name": "lineagelab_fixture",
+  "fullyQualifiedName": "lineagelab_fixture",
+  "displayName": "lineagelab_fixture",
+  "deleted": false
+ },
+ "serviceType": "CustomDatabase",
+ "tags": [
+  {
+   "tagFQN": "Tier.Tier2",
+   "name": "Tier2",
+   "description": "**Important business datasets for your company (not as critical as Tier 1)**\n\n- Used in important business metrics, product metrics, and dashboards to drive internal decisions\n\n- Used in important compliance reporting to major regulators, govt entities, and third party\n\n- Used for less critical online user-facing experiences (user activity, user behavior)\n\n- Source used to derive other critical Tier-2 datasets",
+   "source": "Classification",
+   "labelType": "Manual",
+   "state": "Confirmed",
+   "appliedAt": "2026-11-11T22:01:49.000843Z"
+  }
+ ],
+ "deleted": false,
+ "processedLineage": false,
+ "entityStatus": "Unprocessed"
+}

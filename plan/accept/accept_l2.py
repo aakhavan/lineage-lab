@@ -62,5 +62,6 @@ guarded("live", live)
 pytest_check("tests", required=["test_workcopy_skips_target_logs_and_git",
                                 "test_database_workflow_yaml_has_only_the_three_schemas",
                                 "test_database_workflow_yaml_turns_sample_data_off",
-                                "test_rendered_yaml_in_tests_holds_no_real_credentials"])
+                                "test_rendered_yaml_in_tests_holds_no_real_credentials",
+                                "test_missing_compose_file_is_downloaded_from_the_recorded_url"])
 finish("L2")

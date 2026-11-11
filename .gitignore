@@ -8,3 +8,6 @@ __pycache__/
 work/
 artifacts/
 logs/
+stack/openmetadata/docker-volume/
+# the release compose file carries upstream default keys; it is downloaded, never committed (URL in stack/versions.yaml)
+stack/openmetadata/docker-compose.yml
