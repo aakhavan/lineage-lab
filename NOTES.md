@@ -3,7 +3,7 @@
 Rules: under 150 lines. Current state, open questions, last two steps' result + additions. Older sections go to `NOTES-archive.md` (the factory rotates).
 
 ## Current state
-L4 done. olrun runs dbt-ol build with a composite transport (Marquez HTTP plus file append) under job namespace lineagelab, saving 66 events (33 START, 33 COMPLETE) to artifacts/openlineage/events.ndjson. Marquez shows 33 jobs. The L2/L3 target artifacts are backed up and restored. olevents provides pure load, summary and edges functions (19 datasets, 18 table edges, 64 column edges). olforward posted the unedited events to OpenMetadata's OpenLineage endpoint: 30 accepted, 36 rejected for +00:00 timestamps, 18 new OpenLineage edges on 15 shop_testbed tables. Findings are in docs/findings/openlineage-to-openmetadata.md (80 lines). 18 tests pass.
+L5 done. python -m lineagelab.compare report writes docs/lineage-compare.md and prints one JSON line. The manifest has 18 table edges. OpenMetadata and OpenLineage each have 18 table edges (precision 1.0, recall 1.0 against the manifest) and 63 column edges, all shared. One unmatched name, the CTE sizes in kpi_cohort_retention (postgres://localhost:55432/sizes.cohort_size), is counted and listed; that edge is left out of the score. Every OpenMetadata edge is labeled source OpenLineage because overrideLineage is off, so the column set is the union of the dbt workflow and the OpenLineage post. README has the run from nothing. 22 tests pass.
 
 ## Open questions
 - Docker engine / compose version not recorded: `docker version` / `docker compose version` were blocked by the factory session's permission rules (`docker ps` was allowed). `stack/versions.yaml` has `docker_engine: null`.
@@ -21,33 +21,9 @@ L4 done. olrun runs dbt-ol build with a composite transport (Marquez HTTP plus f
 - L3: OM 2.0.5 rejects `upstreamDepth > 3` (HTTP 400). `om.upstream` now fetches deeper lineage in steps of at most 3.
 - L3: dbt owners are not mapped (24 warnings: no OM user/team named governor_admin, governor_build, or the persona names). They are harmless, and owners are out of scope.
 - L4 (verify, transport): one `dbt-ol build` is enough. Composite transport, file append plus HTTP `api/v1/lineage` on Marquez. Config is YAML under `logs/` because `OPENLINEAGE__` values are lowercased. Column lineage needs no flag; `catalog.json` was already in `target/` and the build left it unchanged.
+- L5: OpenMetadata 2.0.5 keeps one edge per table pair, with one `lineageDetails.source`. After the L4 forward, all 18 edges say `source: OpenLineage`. L5 re-ran `ingest dbt` (rc 0): the edges' updatedAt/updatedBy changed, but source and description stayed OpenLineage (DbtPipeline `overrideLineage` defaults to false, so the dbt workflow merges). The current OM column set (63) is therefore the union of dbt and OpenLineage. L3 counted 63 dbt column edges and OpenLineage has 63 mapped edges, so the two parsers almost certainly agree; that is an inference, not a separate measurement. A clean dbt-only view would need `overrideLineage: true` in ingest.py (not in L5's paths).
+- L5: dbt-ol reports CTE `sizes` (kpi_cohort_retention) as input dataset `postgres://localhost:55432/sizes` (column `cohort_size`). compare lists it as unmatched; OpenMetadata did not resolve it.
 - L4 (verify, OpenMetadata): model events (`eventTime` with `Z`) resolved with no namespace map configured. Test and parent events (`+00:00`) get HTTP 400 "Invalid request format". Rewriting only the timestamp accepts them and still creates no test edge (no output dataset).
-
-## L2 result
-*Work copy, dbt build with artifacts, and the database in OpenMetadata, 11 Nov 2026 23:25.*
-
-Implementer `claude-tc-opus`; reviewers `cursor-grok`: pass; 0 fix loop(s); branch `factory/L2`.
-
-| check | ok | detail |
-|---|---|---|
-| work copy has target/manifest.json | yes |  |
-| work copy has target/catalog.json | yes |  |
-| work copy has target/run_results.json | yes |  |
-| the work copy has no .git | yes |  |
-| work/, artifacts/ and logs/ are not tracked | yes |  |
-| no token in the repo files | yes |  |
-| OpenMetadata is up | yes | {'up': True, 'version': '2.0.5', 'url': 'http://localhost:8585'} |
-| Marquez is up | yes | {'up': True, 'url': 'http://localhost:5000'} |
-| tables can be read from OpenMetadata | yes |  |
-| dev_governor.stg_orders is in OpenMetadata with its columns | yes | 6 columns |
-| dev_governor.kpi_gmv is in OpenMetadata with its columns | yes | 2 columns |
-| analytics.kpi_gmv is in OpenMetadata with its columns | yes | 2 columns |
-| pytest tests | yes | 12 passed in 0.32s |
-| required tests present | yes | 5 found |
-
-Review: L2 does what its prompt asks, and the acceptance pass matches the run. The work copy skips top-level target/, logs/ and .git and leaves ../olist-dbt read-only. dbt 1.12.6 / dbt-postgres 1.11.0 built work/olist-dbt with --target dev (dev_governor only, 33/33 PASS); run_results.json is that build, restored after docs generate. Ingest used docker exec in openmetadata_ingestion for DatabaseMetadata on database shop, schemas raw, dev_governor and analytics only, with no profiler; the workflow YAML is under gitignored work/ and the container copy was removed.
-
-For Amir: Live acceptance shows the three tables exist. Schema exclusion is shown by the workflow filters plus ingest_database.log: database shop, Filtered 5, 0 errors. The offline test rejects public, information_schema and lookalike names. The uvx fallback is coded and was not executed. GetQueries ran and stored nothing because pg_stat_statements is missing. The shop_testbed service in OpenMetadata stores the documented test-bed admin connection. The bot JWT is only in work/ingest/database.yaml; the container copy was removed.
 
 ## L1 result
 *The two stacks (OpenMetadata 2.0.5, Marquez) and the OpenMetadata client, 11 Nov 2026 23:12.*
@@ -84,3 +60,35 @@ L4 should keep the L2 artifacts and the catalogue L3 already loaded. work/olist-
 
 ## Additions for L5
 dbt-ol dataset names (namespace postgres://localhost:55432, name shop.<schema>.<table>) resolve in OpenMetadata 2.0.5 to shop_testbed.shop.<schema>.<table> with no namespace map. Model events (eventTime ending in Z) are accepted. Test events and the parent run event (+00:00) get HTTP 400 'Invalid request format'. Tests have no output dataset, so they add no table edge even when accepted. logs/olforward-report.json has per-event results. OpenMetadata now holds OpenLineage-source edges next to the dbt-workflow edges; account for both sources when comparing lineage in L5.
+
+## L5 result
+*Three views of lineage compared, 12 Nov 2026 10:36.*
+
+Implementer `claude-tc-opus`; reviewers `cursor-grok`: pass; 0 fix loop(s); branch `factory/L5`.
+
+| check | ok | detail |
+|---|---|---|
+| OpenMetadata is up | yes | {'up': True, 'version': '2.0.5', 'url': 'http://localhost:8585'} |
+| Marquez is up | yes | {'up': True, 'url': 'http://localhost:5000'} |
+| compare report prints its JSON line | yes | 18}, "openmetadata": {"table_edges": 18, "column_edges": 63, "precision": 1.0, "recall": 1.0}, "openlineage": {"table_ed |
+| the manifest gives the reference table edges | yes | 18 |
+| openmetadata has edge counts, precision and recall | yes | {'table_edges': 18, 'column_edges': 63, 'precision': 1.0, 'recall': 1.0} |
+| openlineage has edge counts, precision and recall | yes | {'table_edges': 18, 'column_edges': 63, 'precision': 1.0, 'recall': 1.0} |
+| unmatched names are counted | yes | 1 |
+| docs/lineage-compare.md exists | yes | 75 lines |
+| the report shows the manifest edge count | yes |  |
+| README has the command lineagelab.stack up | yes |  |
+| README has the command lineagelab.ingest database | yes |  |
+| README has the command lineagelab.ingest dbt | yes |  |
+| README has the command lineagelab.olrun | yes |  |
+| README has the command lineagelab.compare report | yes |  |
+| no token in the repo files | yes |  |
+| pytest tests | yes | 22 passed in 0.47s |
+| required tests present | yes | 4 found |
+
+Review: L5 does what its prompt asks. normalise is the one name mapper and is unit-tested; an edge with an unmapped end stays out of the score and the raw name is counted and listed (live: the CTE postgres://localhost:55432/sizes.cohort_size). score() runs only against manifest table edges. The markdown and the JSON line come from the same dict and match: 18 table edges, 63 column edges, precision 1.0, recall 1.0, unmatched 1. README gives the full run order, URLs, and three findings.
+
+For Amir: Acceptance checks the JSON shape and that the manifest count occurs in the markdown; it does not recompute precision. The 63-edge column agreement is on the merged OpenMetadata graph (every edge labeled OpenLineage). A dbt-only view would need overrideLineage, which this step does not change.
+
+## Additions for the next plan
+compare.normalise is the only name mapper. manifest: database.schema.table, drop the database. openmetadata: service.database.schema.table[.column], drop service and database. openlineage: namespace/name, with name shop.schema.table[.column] and namespace postgres://host:port, drop the namespace and shop. Unmapped names are listed and those edges are not scored. Live: 18 manifest table edges; OpenMetadata and OpenLineage each 18 table edges, precision 1.0, recall 1.0, and 63 column edges (Jaccard 1.0). olevents has 64 column edges; the one held out is postgres://localhost:55432/sizes.cohort_size (CTE sizes in kpi_cohort_retention). OpenMetadata keeps one edge per table pair and all 18 are source OpenLineage. overrideLineage is false, so the 63 columns are the union of the dbt workflow and the L4 post, not a dbt-only set. FQN shop_testbed.shop.<schema>.<table>. python -m lineagelab.compare report writes docs/lineage-compare.md and prints that JSON. The README lists the run from nothing.

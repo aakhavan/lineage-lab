@@ -60,3 +60,29 @@ Review: L4 does what it asks. dbt-ol writes events.ndjson through its file trans
 
 For Amir: The 'rewritten to Z / rewritten to +00:00' paragraph in the findings is hardcoded text in render_findings (olforward.py:287-291), backed only by a manual check recorded in NOTES.md, with no code or log. It prints whenever errors line up with the timestamp format. Also, that manual check sent two edited events to OpenMetadata; it is disclosed and created no edges.
 
+## L2 result
+*Work copy, dbt build with artifacts, and the database in OpenMetadata, 11 Nov 2026 23:25.*
+
+Implementer `claude-tc-opus`; reviewers `cursor-grok`: pass; 0 fix loop(s); branch `factory/L2`.
+
+| check | ok | detail |
+|---|---|---|
+| work copy has target/manifest.json | yes |  |
+| work copy has target/catalog.json | yes |  |
+| work copy has target/run_results.json | yes |  |
+| the work copy has no .git | yes |  |
+| work/, artifacts/ and logs/ are not tracked | yes |  |
+| no token in the repo files | yes |  |
+| OpenMetadata is up | yes | {'up': True, 'version': '2.0.5', 'url': 'http://localhost:8585'} |
+| Marquez is up | yes | {'up': True, 'url': 'http://localhost:5000'} |
+| tables can be read from OpenMetadata | yes |  |
+| dev_governor.stg_orders is in OpenMetadata with its columns | yes | 6 columns |
+| dev_governor.kpi_gmv is in OpenMetadata with its columns | yes | 2 columns |
+| analytics.kpi_gmv is in OpenMetadata with its columns | yes | 2 columns |
+| pytest tests | yes | 12 passed in 0.32s |
+| required tests present | yes | 5 found |
+
+Review: L2 does what its prompt asks, and the acceptance pass matches the run. The work copy skips top-level target/, logs/ and .git and leaves ../olist-dbt read-only. dbt 1.12.6 / dbt-postgres 1.11.0 built work/olist-dbt with --target dev (dev_governor only, 33/33 PASS); run_results.json is that build, restored after docs generate. Ingest used docker exec in openmetadata_ingestion for DatabaseMetadata on database shop, schemas raw, dev_governor and analytics only, with no profiler; the workflow YAML is under gitignored work/ and the container copy was removed.
+
+For Amir: Live acceptance shows the three tables exist. Schema exclusion is shown by the workflow filters plus ingest_database.log: database shop, Filtered 5, 0 errors. The offline test rejects public, information_schema and lookalike names. The uvx fallback is coded and was not executed. GetQueries ran and stored nothing because pg_stat_statements is missing. The shop_testbed service in OpenMetadata stores the documented test-bed admin connection. The bot JWT is only in work/ingest/database.yaml; the container copy was removed.
+
