@@ -8,7 +8,10 @@ defaults:
   run_budget_usd: 60
   step_budget_usd: 20
   review_budget_usd: {design: 2.0, mechanical: 0.75}
-# no `roles`: the design / mechanical lists come from %USERPROFILE%\.factory\agents.yaml
+# roles for this repo (12 Nov): the user file lists no Claude reviewer for the design tier, so a step implemented by
+# cursor-grok had no reviewer. Reviewer and implementer are always different profiles.
+roles:
+  design: {implementer: [claude-tc-opus, cursor-grok], reviewer: [cursor-grok, claude-tc-opus]}
 steps:
   - id: L1
     title: The two stacks (OpenMetadata 2.0.5, Marquez) and the OpenMetadata client
